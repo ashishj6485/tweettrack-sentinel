@@ -1,0 +1,36 @@
+# Core Web Framework
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+python-multipart==0.0.12
+
+# Twitter Scraping
+twikit>=2.3.0
+
+# Database
+sqlalchemy==2.0.36
+alembic==1.14.0
+psycopg2-binary==2.9.9  # PostgreSQL driver for Supabase
+
+# AI Summarization (Gemini) - New SDK with stable v1 API
+google-genai>=1.0.0
+
+# HTTP Client
+requests==2.32.3
+httpx==0.28.1
+
+# Environment Variables
+python-dotenv==1.0.1
+
+# Date/Time
+python-dateutil==2.9.0
+pytz==2024.2
+
+# WhatsApp Integration (for later)
+twilio==9.3.7
+
+# WebSocket Support
+websockets==14.1
+
+# Utilities
+pydantic==2.10.4
+pydantic-settings==2.7.0

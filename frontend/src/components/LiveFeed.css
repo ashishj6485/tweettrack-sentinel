@@ -1,0 +1,175 @@
+.live-feed {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.feed-header {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.feed-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.feed-header h2::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 24px;
+    background: #2563eb;
+    /* Professional blue accent */
+    border-radius: 2px;
+}
+
+.feed-controls {
+    display: flex;
+    gap: 12px;
+    position: relative;
+    min-width: 200px;
+}
+
+.account-filter {
+    background: #ffffff;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    z-index: 10;
+}
+
+.account-filter:focus {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: auto;
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.account-filter:hover {
+    border-color: #94a3b8;
+}
+
+.account-filter option {
+    padding: 10px;
+    background: #ffffff;
+    color: #334155;
+}
+
+.feed-info {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+.tweet-count {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+}
+
+.last-update {
+    color: #94a3b8;
+}
+
+.tweets-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+    margin-top: 10px;
+}
+
+.tweets-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tweets-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tweets-list::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+.tweets-list::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+}
+
+.loading-state,
+.error-state,
+.empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: #64748b;
+    text-align: center;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f1f5f9;
+    border-top: 3px solid #2563eb;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.retry-button {
+    background: #1e293b;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.retry-button:hover {
+    background: #0f172a;
+}
+
+.empty-hint {
+    font-size: 13px;
+    color: #94a3b8;
+}

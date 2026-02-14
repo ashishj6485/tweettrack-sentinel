@@ -1,0 +1,154 @@
+.dashboard {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #f1f5f9;
+    /* Clean, stable background */
+    color: #0f172a;
+    overflow: hidden;
+}
+
+.dashboard-header {
+    padding: 16px 40px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.header-content {
+    flex: 1;
+}
+
+.app-title {
+    margin: 0 0 4px 0;
+    font-size: 28px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #1e293b;
+    letter-spacing: -0.025em;
+}
+
+.title-icon {
+    font-size: 32px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.app-subtitle {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.header-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8fafc;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(0.9);
+    }
+}
+
+.status-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #059669;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dashboard-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 24px 40px;
+    overflow: hidden;
+}
+
+.dashboard-left,
+.dashboard-right {
+    min-width: 0;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.dashboard-footer {
+    padding: 12px 40px;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    text-align: center;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.dashboard-footer p {
+    margin: 0;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .dashboard-content {
+        grid-template-columns: 1fr;
+        overflow-y: auto;
+    }
+
+    .dashboard-left,
+    .dashboard-right {
+        height: auto;
+        min-height: 600px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 16px 20px;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .app-title {
+        font-size: 24px;
+    }
+
+    .dashboard-content {
+        padding: 16px 20px;
+    }
+
+    .dashboard-footer {
+        padding: 10px 20px;
+    }
+}

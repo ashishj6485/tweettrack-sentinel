@@ -1,0 +1,35 @@
+services:
+  # Backend API + Background Scraper
+  - type: web
+    name: tweettrack-backend
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python main.py"
+    envVars:
+      - key: TWITTER_USERNAME
+        sync: false
+      - key: TWITTER_PASSWORD
+        sync: false
+      - key: TWITTER_EMAIL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_WHATSAPP_NUMBER
+        sync: false
+      - key: WHATSAPP_TO_NUMBERS
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: POLL_INTERVAL_SECONDS
+        value: "600"
+      - key: MONITORED_ACCOUNTS
+        sync: false
+      - key: PORT
+        value: "8000"
+    healthCheckPath: /health
