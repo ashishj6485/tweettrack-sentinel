@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     
     # API Configuration
     api_host: str = Field(default='0.0.0.0')
-    api_port: int = Field(default=8000)
+    api_port: int = Field(default=8000, validation_alias=AliasChoices('PORT', 'API_PORT'))
     
     # Security
     secret_key: str = Field(default='insecure-dev-key-change-in-production')
