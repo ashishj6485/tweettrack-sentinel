@@ -11,7 +11,7 @@ The system follows a modern decoupled architecture designed for high availabilit
 ### 🎨 Frontend (React + Vite)
 - **Live Feed**: Real-time monitoring of targeted accounts with integrated AI insights.
 - **Global Search**: Search keywords globally across Twitter with on-the-fly AI analysis and categorization.
-- **24h Rolling Window**: Displays a continuous 24-hour archive of processed tweets, keeping the dashboard relevant and focused.
+- **24h Rolling Window**: Displays a continuous 24-hour archive of processed tweets while simultaneously performing live scraping, ensuring the dashboard is always up-to-date with both historical context and real-time events.
 - **Tech Stack**: React 18, Vite, Vanilla CSS.
 
 ### ⚙️ Backend (FastAPI + Python)
