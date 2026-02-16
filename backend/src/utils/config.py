@@ -21,8 +21,9 @@ class Settings(BaseSettings):
     twitter_email: str = Field(default='')
     twitter_password: str = Field(default='')
     
-    # AI Summarization (Gemini API)
+    # AI Summarization (Gemini & Groq)
     gemini_api_key: str = Field(default='')
+    groq_api_key: str = Field(default='')
     
     # WhatsApp Alerts (Twilio)
     twilio_account_sid: str = Field(default='')

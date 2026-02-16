@@ -111,20 +111,11 @@ def get_summarizer() -> GeminiSummarizer:
     return _summarizer
 
 
+from src.ai.groq_summarizer import summarize_tweet as groq_summarize
+
 def summarize_tweet(tweet_text: str) -> str:
     """
     Convenience function to summarize a single tweet.
+    Now using Groq as the primary engine.
     """
-    summarizer = get_summarizer()
-    summary = summarizer.summarize(tweet_text)
-    
-    # NEW: If summary is None or basically just a copy of text, show Offline message
-    if summary is None:
-        logger.warning("Summarization failed (Quota Hit), using Offline placeholder")
-        return "[AI Analysis Offline] Waiting for quota reset..."
-    
-    # Double check it's not a sneaky repetition
-    if summary.strip() == tweet_text.strip() or tweet_text.startswith(summary):
-        return "[AI Analysis Offline] Waiting for quota reset..."
-    
-    return summary
+    return groq_summarize(tweet_text)

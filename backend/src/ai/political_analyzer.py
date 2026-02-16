@@ -1,30 +1,30 @@
 """
-Gemini AI Political Risk Analyzer for Minister Ashish Sood's Office.
+Political Risk Analyzer using Groq Cloud API (Llama models).
 Analyzes tweets for political threats, grievances, and support.
-Uses new google-genai SDK (stable v1 API).
+Free alternative to Gemini.
 """
 import json
 import logging
+import os
 from typing import Dict, Optional, List
-from google import genai
+from groq import Groq
 from src.utils.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Initialize Gemini client (new SDK - uses stable v1 API)
-client = genai.Client(api_key=settings.gemini_api_key)
-
+# Initialize Groq client
+client = Groq(api_key=settings.groq_api_key) if settings.groq_api_key else None
 
 class PoliticalAnalyzer:
-    """Analyzes tweets for political risk and sentiment."""
+    """Analyzes tweets for political risk and sentiment using Groq."""
     
-    def __init__(self, model_name: str = "gemini-2.0-flash-lite"):
+    def __init__(self, model_name: str = "llama-3.1-8b-instant"):
         """Initialize the political analyzer."""
         self.model_name = model_name
-        logger.info(f"Initialized Political Analyzer with model: {self.model_name}")
+        logger.info(f"Initialized Groq Political Analyzer with model: {self.model_name}")
     
     def _create_analysis_prompt(self, tweet_text: str, username: str) -> str:
-        """Create the analysis prompt for Gemini."""
+        """Create the analysis prompt for Groq."""
         return f"""You are a Political Risk & Sentiment Analyst for the Office of Ashish Sood, Cabinet Minister (Govt of NCT of Delhi).
 
 **Minister's Portfolios:**
@@ -66,207 +66,123 @@ Analyze this tweet from @{username} and classify it.
 - -0.5: Somewhat negative
 - -1.0: Highly negative/attack
 
-**CRITICAL: Respond ONLY with valid JSON. No explanation outside JSON. No markdown. Pure JSON only.**
+**CRITICAL: Respond ONLY with valid JSON. No conversation or markdown.**
 
 **Output Format:**
 {{
-  "original_tweet": "{tweet_text[:100]}...",
   "category": "ATTACK|GRIEVANCE|SUPPORT|NEUTRAL",
-  "portfolio": "Education|Home|Power|Urban Dev|General",
+  "portfolio": "Education|Home|Power|Urban Development|General",
   "urgency_score": 1-5,
   "sentiment_score": -1.0 to 1.0,
-  "summary": "One sentence analysis",
-  "action_required": true|false,
-  "key_keywords": ["keyword1", "keyword2", "keyword3"]
+  "summary": "One sentence professional analysis",
+  "action_required": true|false
 }}"""
-    
+
     async def analyze_tweet(self, tweet_text: str, username: str) -> Optional[Dict]:
-        """
-        Analyze a tweet for political risk and sentiment.
-        
-        Args:
-            tweet_text: The tweet content
-            username: Twitter handle of poster
-        
-        Returns:
-            Dict with analysis results or None if failed
-        """
+        """Analyze a single tweet using Groq."""
+        if not client: return None
         try:
             prompt = self._create_analysis_prompt(tweet_text, username)
-            
-            # Generate analysis using new SDK
-            logger.info(f"Analyzing tweet from @{username}...")
-            response = client.models.generate_content(
+            completion = client.chat.completions.create(
                 model=self.model_name,
-                contents=prompt,
+                messages=[
+                    {"role": "system", "content": "You are a political data scientist providing raw JSON analysis."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.2
             )
             
-            # Parse JSON response
-            response_text = response.text.strip()
-            
-            # Remove markdown code blocks if present
-            if response_text.startswith("```json"):
-                response_text = response_text.replace("```json", "").replace("```", "").strip()
-            elif response_text.startswith("```"):
-                response_text = response_text.replace("```", "").strip()
-            
-            # Parse JSON
-            analysis = json.loads(response_text)
-            
-            # Validate required fields
-            required_fields = ["category", "portfolio", "urgency_score", "sentiment_score", "summary"]
-            for field in required_fields:
-                if field not in analysis:
-                    logger.error(f"Missing required field: {field}")
-                    return None
-            
-            logger.info(f"Analysis complete: {analysis['category']} (Urgency: {analysis['urgency_score']})")
-            return analysis
-            
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse JSON response: {str(e)}")
-            logger.error(f"Response was: {response_text[:200] if 'response_text' in locals() else 'N/A'}")
-            return None
+            return json.loads(completion.choices[0].message.content)
         except Exception as e:
-            logger.error(f"Error analyzing tweet: {str(e)}")
+            logger.error(f"Error in Groq analysis: {e}")
             return None
-
 
     async def analyze_batch(self, tweets_data: List[Dict]) -> List[Optional[Dict]]:
-        """
-        Analyze a batch of tweets in a single Gemini call.
+        """Analyze a batch of tweets in a single Groq call."""
+        if not client or not tweets_data: return [None] * len(tweets_data)
         
-        Args:
-            tweets_data: List of dicts with {'tweet_id': str, 'text': str, 'username': str}
-        
-        Returns:
-            List of analysis dicts (matched to input order)
-        """
-        if not tweets_data:
-            return []
-            
         try:
-            logger.info(f"🚀 Batch analyzing {len(tweets_data)} tweets...")
-            prompt = self._create_batch_analysis_prompt(tweets_data)
+            logger.info(f"🚀 Batch analyzing {len(tweets_data)} tweets with Groq...")
             
-            response = client.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-            )
+            # Simple batch list
+            batch_list = [{"tweet_id": str(t['tweet_id']), "text": t['text'], "username": t['username']} for t in tweets_data]
             
-            response_text = response.text.strip()
-            
-            # Remove markdown code blocks
-            if "```" in response_text:
-                if "```json" in response_text:
-                    response_text = response_text.split("```json")[1].split("```")[0].strip()
-                else:
-                    response_text = response_text.split("```")[1].split("```")[0].strip()
-            
-            # Parse JSON array
-            results_list = json.loads(response_text)
-            
-            # Map results back to input order for safety
-            if not isinstance(results_list, list):
-                logger.error("Gemini did not return a JSON array for batch")
-                return [None] * len(tweets_data)
-                
-            # Create a lookup map by ID
-            results_map = {str(item.get('tweet_id')): item for item in results_list}
-            
-            final_ordered_results = []
-            for tweet in tweets_data:
-                res = results_map.get(str(tweet['tweet_id']))
-                final_ordered_results.append(res)
-                
-            logger.info(f"✅ Finished batch analysis of {len(tweets_data)} tweets")
-            return final_ordered_results
-            
-        except Exception as e:
-            logger.error(f"❌ Batch analysis failed: {str(e)}")
-            return [None] * len(tweets_data)
+            prompt = f"""You are a Political Risk & Sentiment Analyst for the Office of Ashish Sood, Cabinet Minister (Govt of NCT of Delhi).
 
-    def _create_batch_analysis_prompt(self, tweets_data: List[Dict]) -> str:
-        """Create a prompt for batch analysis."""
-        # Simple list of tweets for the prompt
-        formatted_tweets = []
-        for t in tweets_data:
-            formatted_tweets.append({
-                "tweet_id": str(t['tweet_id']),
-                "username": t['username'],
-                "text": t['text']
-            })
-            
-        tweets_json = json.dumps(formatted_tweets, ensure_ascii=False)
-        
-        return f"""You are a Political Risk & Sentiment Analyst for the Office of Ashish Sood, Cabinet Minister (Govt of NCT of Delhi).
-
-Analyze the following list of tweets. Follow the guidelines for each.
+Analyze the following list of tweets.
 
 **Minister's Portfolios:** Education, Home, Power, Urban Development.
 
-**Analysis Guidelines:**
-- ATTACK: insults, mockery, or corruption allegations against Minister/AAP
-- GRIEVANCE: Specific citizen issues (power cut, bad roads, etc.)
+**Classification Guidelines:**
+- ATTACK: Personal insults, political mockery, or corruption allegations against Minister/AAP
+- GRIEVANCE: Specific citizen issues (power cuts, bad roads, etc.)
 - SUPPORT: Praise or defense of Minister/AAP
 - NEUTRAL: General news
+
+**Urgency Scoring (1-5):** 5 is highest (crisis), 1 is minimal.
+**Sentiment Scoring (-1.0 to 1.0):** -1.0 is highly negative, 1.0 is highly positive.
+
+**Tweets to analyze:**
+{json.dumps(batch_list)}
 
 **CRITICAL: Respond ONLY with a valid JSON array of objects. No explanation.**
 Each object MUST include the "tweet_id" exactly as provided.
 
-**Tweets to analyze:**
-{tweets_json}
+Output Format for each object:
+{{
+  "tweet_id": "...",
+  "category": "ATTACK|GRIEVANCE|SUPPORT|NEUTRAL",
+  "portfolio": "Education|Home|Power|Urban Development|General",
+  "urgency_score": 1-5,
+  "sentiment_score": -1.0 to 1.0,
+  "summary": "One sentence professional analysis",
+  "action_required": true|false
+}}"""
 
-**Output Structure Example:**
-[
-  {{
-    "tweet_id": "123",
-    "category": "ATTACK",
-    "portfolio": "Education",
-    "urgency_score": 5,
-    "sentiment_score": -0.8,
-    "summary": "Reasoning sentence",
-    "action_required": true
-  }}
-]"""
+            completion = client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": "Return ONLY a JSON array. No text before or after."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"} if "70b" in self.model_name else None,
+                temperature=0.1
+            )
+            
+            # The 70b-versatile supports json_object which might wrap the array in an object
+            resp = json.loads(completion.choices[0].message.content)
+            
+            # If it wrapped it in a key (like "results"), extract it
+            if isinstance(resp, dict):
+                for val in resp.values():
+                    if isinstance(val, list):
+                        results_list = val
+                        break
+                else:
+                    results_list = [resp] # maybe single object
+            else:
+                results_list = resp
 
+            # Create a lookup map by ID
+            results_map = {str(item.get('tweet_id')): item for item in results_list if isinstance(item, dict)}
+            
+            return [results_map.get(str(tweet['tweet_id'])) for tweet in tweets_data]
+            
+        except Exception as e:
+            logger.error(f"❌ Groq Batch analysis failed: {str(e)}")
+            return [None] * len(tweets_data)
 
-# Global analyzer instance
+# Global instances
 _analyzer = None
 
-
 def get_political_analyzer() -> PoliticalAnalyzer:
-    """Get or create global analyzer instance."""
     global _analyzer
-    if _analyzer is None:
-        _analyzer = PoliticalAnalyzer()
+    if _analyzer is None: _analyzer = PoliticalAnalyzer()
     return _analyzer
 
-
 async def analyze_political_tweet(tweet_text: str, username: str) -> Optional[Dict]:
-    """
-    Convenience function to analyze a tweet.
-    
-    Args:
-        tweet_text: Tweet content
-        username: Twitter handle
-    
-    Returns:
-        Analysis dict or None
-    """
-    analyzer = get_political_analyzer()
-    return await analyzer.analyze_tweet(tweet_text, username)
-
+    return await get_political_analyzer().analyze_tweet(tweet_text, username)
 
 async def analyze_batch_tweets(tweets_data: List[Dict]) -> List[Optional[Dict]]:
-    """
-    Convenience function to analyze a batch of tweets.
-    
-    Args:
-        tweets_data: List of dicts with {'tweet_id': str, 'text': str, 'username': str}
-    
-    Returns:
-        List of analysis dicts
-    """
-    analyzer = get_political_analyzer()
-    return await analyzer.analyze_batch(tweets_data)
+    return await get_political_analyzer().analyze_batch(tweets_data)
